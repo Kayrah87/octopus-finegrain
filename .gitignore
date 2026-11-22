@@ -1,0 +1,24 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local data (synced Octopus cache)
+/data/
+*.sqlite
+*.sqlite-journal
+
+# Dependencies / build output
+/vendor/
+/node_modules/
+/public/build/
+/public/hot
+/storage/*.key
+
+# Tooling
+.idea/
+.vscode/
+.DS_Store
+.phpunit.result.cache
+/test-results/
+/playwright-report/
