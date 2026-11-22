@@ -71,6 +71,7 @@ final readonly class SqlUsageReadModel implements UsageReadModel
                     Money::ofMicropence((int) ($row->cost ?? 0)),
                     Money::ofMicropence((int) ($standing->get($key) ?? 0)),
                 ),
+                $row !== null,
             );
         }, array_map('strval', $buckets)));
     }
@@ -91,6 +92,11 @@ final readonly class SqlUsageReadModel implements UsageReadModel
             ))
             ->values()
             ->all());
+    }
+
+    public function daysWithData(array $meterPointIds, string $fromDate, string $toDate): int
+    {
+        return $this->intervals($meterPointIds, $fromDate, $toDate)->distinct()->count('local_date');
     }
 
     public function coverage(array $meterPointIds): array

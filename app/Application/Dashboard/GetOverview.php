@@ -7,7 +7,6 @@ namespace App\Application\Dashboard;
 use App\Application\Data\SeriesPoint;
 use App\Application\Data\TotalsView;
 use App\Application\Ports\LiveTelemetryGateway;
-use App\Application\Ports\SyncLog;
 use App\Application\Ports\UsageReadModel;
 use App\Domain\Analysis\PeriodComparison;
 use App\Domain\Metering\MeterPoint;
@@ -30,7 +29,6 @@ final readonly class GetOverview
         private TariffRateRepository $rates,
         private UnitRateResolver $rateResolver,
         private LocalCalendar $calendar,
-        private SyncLog $syncLog,
         private LiveTelemetryGateway $live,
     ) {}
 
@@ -39,7 +37,6 @@ final readonly class GetOverview
     {
         return [
             'meters' => array_map($this->meterSummary(...), $this->catalogue->sorted()),
-            'sync' => $this->syncLog->latest(),
             'liveEnabled' => $this->live->isConfigured(),
         ];
     }

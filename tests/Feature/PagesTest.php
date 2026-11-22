@@ -31,7 +31,7 @@ it('explores a range with drill-down metadata and a heatmap', function (): void 
         ->where('selection.finer', 'half_hour')
         ->has('series', 5)
         ->where('series.4.kwh', 24)
-        ->where('series.0.kwh', 0)
+        ->where('series.0.kwh', null)
         ->has('heatmap', 48));
 });
 
@@ -53,6 +53,8 @@ it('compares two days, each broken into half-hours', function (): void {
         ->where('periods.0.totals.kwh', 0)
         ->where('periods.1.totals.kwh', 24)
         ->where('periods.1.energyChangePercent', null)
+        ->where('periods.1.daysWithData', 1)
+        ->where('periods.1.costPerDay', 6.38)
         ->has('periods.1.series', 48));
 });
 
@@ -60,7 +62,9 @@ it('compares months by default', function (): void {
     $this->get('/compare')->assertInertia(fn (Assert $page) => $page
         ->where('selection.granularity', 'month')
         ->where('periods.0.label', 'December 2025')
-        ->where('periods.1.label', 'January 2026'));
+        ->where('periods.1.label', 'January 2026')
+        ->where('periods.1.days', 31)
+        ->where('periods.1.daysWithData', 1));
 });
 
 it('shows tariff history and recent rates', function (): void {

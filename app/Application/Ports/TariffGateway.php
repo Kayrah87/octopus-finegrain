@@ -11,6 +11,6 @@ use App\Domain\Tariffs\TariffCode;
 
 interface TariffGateway
 {
-    /** @return list<Rate> */
-    public function rates(TariffCode $tariff, RateKind $kind, DateRange $range): array;
+    /** @return iterable<Rate> Streamed page by page. */
+    public function rates(TariffCode $tariff, RateKind $kind, DateRange $range): iterable;
 }

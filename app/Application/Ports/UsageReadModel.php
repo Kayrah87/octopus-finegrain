@@ -29,6 +29,9 @@ interface UsageReadModel
      */
     public function heatmap(array $meterPointIds, string $fromDate, string $toDate): array;
 
+    /** @param  list<int>  $meterPointIds */
+    public function daysWithData(array $meterPointIds, string $fromDate, string $toDate): int;
+
     /**
      * @param  list<int>  $meterPointIds
      * @return array{0: ?string, 1: ?string} First and last local dates with data.

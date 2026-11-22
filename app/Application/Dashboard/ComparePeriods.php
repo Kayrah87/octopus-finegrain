@@ -60,6 +60,8 @@ final readonly class ComparePeriods
             $totals = $this->usage->totals($ids, $start->toDateString(), $end->toDateString());
             $baselineTotals ??= $totals;
             $comparison = new PeriodComparison($baselineTotals, $totals);
+            $days = (int) $start->diffInDays($end) + 1;
+            $daysWithData = $this->usage->daysWithData($ids, $start->toDateString(), $end->toDateString());
 
             $periods[] = [
                 'date' => $date,
@@ -67,6 +69,9 @@ final readonly class ComparePeriods
                 'from' => $start->toDateString(),
                 'to' => $end->toDateString(),
                 'totals' => TotalsView::of($totals),
+                'days' => $days,
+                'daysWithData' => $daysWithData,
+                'costPerDay' => $daysWithData === 0 ? null : round((float) $totals->totalCost()->toPoundsString(4) / $daysWithData, 2),
                 'energyChangePercent' => $comparison->energyChange()->percent?->toFloat(),
                 'costChangePercent' => $comparison->costChange()->percent?->toFloat(),
                 'series' => array_map(

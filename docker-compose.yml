@@ -1,0 +1,30 @@
+services:
+  finegrain:
+    build: .
+    image: octopus-finegrain:latest
+    container_name: octopus-finegrain
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-8080}:8080"
+    environment:
+      # Required
+      OCTOPUS_API_KEY: ${OCTOPUS_API_KEY:?Set OCTOPUS_API_KEY}
+      OCTOPUS_ACCOUNT_NUMBER: ${OCTOPUS_ACCOUNT_NUMBER:?Set OCTOPUS_ACCOUNT_NUMBER}
+      # Optional: live Home Mini data (leave empty to disable)
+      OCTOPUS_GRAPHQL_API_KEY: ${OCTOPUS_GRAPHQL_API_KEY:-}
+      # Optional: login is enforced only when BOTH are set
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+      # Optional tuning
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-60}
+      DASHBOARD_TIMEZONE: ${DASHBOARD_TIMEZONE:-Europe/London}
+      OCTOPUS_GAS_METER_UNIT: ${OCTOPUS_GAS_METER_UNIT:-m3}
+      OCTOPUS_GAS_CALORIFIC_VALUE: ${OCTOPUS_GAS_CALORIFIC_VALUE:-39.5}
+      OCTOPUS_E7_NIGHT_START: ${OCTOPUS_E7_NIGHT_START:-00:30}
+      OCTOPUS_E7_NIGHT_END: ${OCTOPUS_E7_NIGHT_END:-07:30}
+      APP_NAME: Finegrain
+    volumes:
+      - finegrain-data:/data
+
+volumes:
+  finegrain-data:

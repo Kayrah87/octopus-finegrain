@@ -54,7 +54,7 @@ Pest architecture tests enforce these rules.
 
 **Application** holds one class per use case, each with a single `handle()` method:
 - `SyncAccount`, `SyncConsumption`, `SyncTariffRates`, `PriceIntervals`, `RunFullSync`
-- `GetOverview`, `GetUsageSeries`, `ComparePeriods`, `GetTariffHistory`, `GetLiveDemand`
+- `GetOverview`, `ExploreUsage`, `ComparePeriods`, `GetTariffHistory`, `GetLiveDemand`, with `MeterPointCatalogue` shared by the pages
 
 These return plain readonly DTOs.
 
@@ -86,8 +86,14 @@ The `intervals` table has these columns:
 - `unit_rate` and `cost` (the cost is null until the half-hour is priced)
 - `local_date` and `local_slot` (Europe/London), so day, week and month queries need no time-zone maths
 
-Money in the database is held as decimal strings with 6 dp and converted to `Money` in the domain.
-Floats are never used for money.
+Money is stored as integer micropence (1p = 1,000,000) and energy as integer watt-hours, so SQL
+sums are exact. The domain uses `Money` and `Energy`, which are backed by BigDecimal. Floats only
+appear at the presentation boundary.
+
+Two more points:
+- Pricing loads unit rates per chunk of intervals, covering only that chunk's time window, because
+  Agile publishes about 17,500 rates a year.
+- Buckets with no readings come back as `null`, not zero.
 
 ## Sync
 
@@ -126,8 +132,9 @@ are set:
 - **Explore**: a fuel/meter picker, a date range and an automatic level of detail. Clicking a bar drills
   down a level (month → day → half-hour). A heatmap shows days against half-hour slots. You can
   switch between usage and cost.
-- **Compare**: choose a granularity and two periods. Shows the two periods overlaid, their totals and
-  the change, and the average p/kWh.
+- **Compare**: choose a granularity and up to four periods. Shows the periods overlaid, their totals
+  and the change, the average p/kWh, and the cost per day. A partial period is compared on its daily
+  average.
 - **Tariffs**: agreement history and a chart of unit rates.
 
 Charts use ECharts through `vue-echarts`.

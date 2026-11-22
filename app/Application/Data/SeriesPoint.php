@@ -12,11 +12,21 @@ final readonly class SeriesPoint
     public function __construct(
         public string $bucket,
         public UsageTotals $totals,
+        public bool $hasData = true,
     ) {}
 
-    /** @return array{bucket: string, kwh: float, cost: float, unitCost: float, standing: float} */
+    /**
+     * Buckets without readings (e.g. days not yet published) are null, not zero,
+     * so charts show a gap rather than a misleading drop.
+     *
+     * @return array{bucket: string, kwh: float|null, cost: float|null, unitCost: float|null, standing: float|null}
+     */
     public function toArray(): array
     {
+        if (! $this->hasData) {
+            return ['bucket' => $this->bucket, 'kwh' => null, 'cost' => null, 'unitCost' => null, 'standing' => null];
+        }
+
         return [
             'bucket' => $this->bucket,
             'kwh' => $this->totals->energy->kwh->toFloat(),

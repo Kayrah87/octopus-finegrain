@@ -21,19 +21,39 @@ final class DatabaseTariffRateRepository implements TariffRateRepository
 
     private const FORMAT = 'Y-m-d H:i:s';
 
-    public function upsert(TariffCode $tariff, RateKind $kind, array $rates): void
-    {
-        $rows = array_map(fn (Rate $rate): array => [
-            'tariff_code' => (string) $tariff,
-            'kind' => $kind->value,
-            'value_micropence' => $rate->valueIncVat->toMicropence(),
-            'valid_from' => $rate->validFrom->utc()->format(self::FORMAT),
-            'valid_to' => $rate->validTo?->utc()->format(self::FORMAT),
-        ], $rates);
+    private const WRITE_CHUNK = 1000;
 
-        foreach (array_chunk($rows, 1000) as $chunk) {
-            DB::table(self::TABLE)->upsert($chunk, ['tariff_code', 'kind', 'valid_from'], ['value_micropence', 'valid_to']);
+    public function upsert(TariffCode $tariff, RateKind $kind, iterable $rates): int
+    {
+        $buffer = [];
+        $written = 0;
+
+        foreach ($rates as $rate) {
+            $buffer[] = [
+                'tariff_code' => (string) $tariff,
+                'kind' => $kind->value,
+                'value_micropence' => $rate->valueIncVat->toMicropence(),
+                'valid_from' => $rate->validFrom->utc()->format(self::FORMAT),
+                'valid_to' => $rate->validTo?->utc()->format(self::FORMAT),
+            ];
+
+            if (count($buffer) >= self::WRITE_CHUNK) {
+                $written += $this->flush($buffer);
+                $buffer = [];
+            }
         }
+
+        return $written + $this->flush($buffer);
+    }
+
+    /** @param  list<array<string, mixed>>  $rows */
+    private function flush(array $rows): int
+    {
+        if ($rows !== []) {
+            DB::table(self::TABLE)->upsert($rows, ['tariff_code', 'kind', 'valid_from'], ['value_micropence', 'valid_to']);
+        }
+
+        return count($rows);
     }
 
     public function schedule(TariffCode $tariff, RateKind $kind): RateSchedule

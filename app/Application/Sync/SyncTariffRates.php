@@ -34,9 +34,7 @@ final readonly class SyncTariffRates
         $written = 0;
 
         foreach ($this->wantedRanges($meterPoints) as [$tariff, $kind, $range]) {
-            $rates = $this->gateway->rates($tariff, $kind, $range);
-            $this->rates->upsert($tariff, $kind, $rates);
-            $written += count($rates);
+            $written += $this->rates->upsert($tariff, $kind, $this->gateway->rates($tariff, $kind, $range));
         }
 
         return $written;

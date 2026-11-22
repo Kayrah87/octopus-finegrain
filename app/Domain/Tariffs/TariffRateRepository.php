@@ -9,8 +9,11 @@ use Carbon\CarbonImmutable;
 
 interface TariffRateRepository
 {
-    /** @param  list<Rate>  $rates */
-    public function upsert(TariffCode $tariff, RateKind $kind, array $rates): void;
+    /**
+     * @param  iterable<Rate>  $rates
+     * @return int Number of rates written.
+     */
+    public function upsert(TariffCode $tariff, RateKind $kind, iterable $rates): int;
 
     public function schedule(TariffCode $tariff, RateKind $kind): RateSchedule;
 

@@ -57,7 +57,7 @@ final class DemoDataSeeder extends Seeder
             new Agreement($gasTariff, $start, null),
         ]));
 
-        $this->rates->upsert($agile, RateKind::Standard, iterator_to_array($this->agileRates($start, $end->addDay()), false));
+        $this->rates->upsert($agile, RateKind::Standard, $this->agileRates($start, $end->addDay()));
         $this->rates->upsert($agile, RateKind::StandingCharge, [new Rate(Money::ofPence('47.85'), $start, null)]);
         $this->rates->upsert($gasTariff, RateKind::Standard, [new Rate(Money::ofPence('6.29'), $start, null)]);
         $this->rates->upsert($gasTariff, RateKind::StandingCharge, [new Rate(Money::ofPence('31.43'), $start, null)]);
