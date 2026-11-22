@@ -24,6 +24,7 @@ final readonly class ExploreUsage
         private MeterPointCatalogue $catalogue,
         private UsageReadModel $usage,
         private LocalCalendar $calendar,
+        private CumulativeTotals $cumulative,
     ) {}
 
     /** @return array<string, mixed> */
@@ -59,13 +60,26 @@ final readonly class ExploreUsage
             ],
             'coverage' => ['from' => $firstDate, 'to' => $lastDate],
             'totals' => TotalsView::of($this->usage->totals($ids, $fromDate, $toDate)),
-            'series' => array_map(
-                static fn (SeriesPoint $p): array => $p->toArray(),
-                $this->usage->series($ids, $fromDate, $toDate, $granularity),
-            ),
+            'series' => $this->seriesWithCumulative($ids, $fromDate, $toDate, $granularity),
             'heatmap' => $days <= self::HEATMAP_MAX_DAYS
                 ? array_map(static fn (HeatmapCell $c): array => (array) $c, $this->usage->heatmap($ids, $fromDate, $toDate))
                 : null,
         ];
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @return list<array<string, mixed>>
+     */
+    private function seriesWithCumulative(array $ids, string $fromDate, string $toDate, Granularity $granularity): array
+    {
+        $series = $this->usage->series($ids, $fromDate, $toDate, $granularity);
+        $cumulative = $this->cumulative->forSeries($ids, $series, $granularity, $toDate);
+
+        return array_map(
+            static fn (SeriesPoint $p, ?array $c): array => [...$p->toArray(), 'cumulative' => $c],
+            $series,
+            $cumulative,
+        );
     }
 }

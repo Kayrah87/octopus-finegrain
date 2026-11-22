@@ -16,7 +16,11 @@ export interface SeriesPoint {
     cost: number | null;
     unitCost: number | null;
     standing: number | null;
+    /** Running totals (incl. standing charges) as at the end of the bucket; Explore only. */
+    cumulative?: Partial<Record<CumulativePeriod, { kwh: number; cost: number }>> | null;
 }
+
+export type CumulativePeriod = 'day' | 'week' | 'month' | 'year';
 
 export interface Totals {
     kwh: number;

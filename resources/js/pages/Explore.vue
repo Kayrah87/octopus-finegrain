@@ -11,7 +11,7 @@ import { bucketLabel } from '@/lib/buckets';
 import { baseOption, legend, seriesColour } from '@/lib/echarts';
 import { addDays, endOfMonth, formatDate, kwh, money, pence, slotLabel, timezone } from '@/lib/format';
 import { token } from '@/lib/theme';
-import type { Granularity, MeterOption, Metric, SeriesPoint, Totals } from '@/types';
+import type { CumulativePeriod, Granularity, MeterOption, Metric, SeriesPoint, Totals } from '@/types';
 
 interface Selection {
     meter: number;
@@ -110,8 +110,8 @@ function seriesOption(): EChartsOption {
                     ? [`${money(p.cost)} total`, showStanding ? `${money(p.unitCost)} energy + ${money(p.standing)} standing` : '', `${kwh(p.kwh, true)}`]
                     : [`${kwh(p.kwh, true)}`, money(p.cost)];
                 const rate = p.kwh > 0 && p.unitCost !== null ? `<br><span style="opacity:.7">avg ${pence((p.unitCost * 100) / p.kwh)}/kWh</span>` : '';
-                const hint = s.finer ? '<br><span style="opacity:.6">Click to drill down</span>' : '';
-                return `<b>${bucketLabel(p.bucket, s.granularity, tz, true)}</b><br>${lines.filter(Boolean).join('<br>')}${rate}${hint}`;
+                const hint = s.finer ? '<div style="opacity:.6;margin-top:6px">Click to drill down</div>' : '';
+                return `<b>${bucketLabel(p.bucket, s.granularity, tz, true)}</b><br>${lines.filter(Boolean).join('<br>')}${rate}${cumulativeHtml(p)}${hint}`;
             },
         },
         dataZoom: many ? [{ type: 'inside' }, { type: 'slider', height: 18, bottom: 4, borderColor: 'transparent' }] : [],
@@ -129,6 +129,27 @@ function seriesOption(): EChartsOption {
                 : [bar('Energy', points.map((p) => p.unitCost), seriesColour(0), true)]
             : [bar('Usage', points.map((p) => p.kwh), seriesColour(0), true)],
     };
+}
+
+const cumulativeLabels: Record<CumulativePeriod, string> = {
+    day: 'Day so far',
+    week: 'Week to date',
+    month: 'Month to date',
+    year: 'Year to date',
+};
+
+/** Tooltip block of running totals, as a small aligned table. */
+function cumulativeHtml(point: SeriesPoint): string {
+    const entries = (['day', 'week', 'month', 'year'] as const).filter((k) => point.cumulative?.[k]);
+    if (!entries.length) return '';
+    const rows = entries
+        .map((k) => {
+            const c = point.cumulative![k]!;
+            const [main, sub] = metric.value === 'cost' ? [money(c.cost), kwh(c.kwh)] : [kwh(c.kwh), money(c.cost)];
+            return `<tr><td style="padding-right:12px;opacity:.7">${cumulativeLabels[k]}</td><td style="text-align:right;font-weight:600">${main}</td><td style="text-align:right;padding-left:8px;opacity:.6">${sub}</td></tr>`;
+        })
+        .join('');
+    return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid ${token('line')}"><div style="font-size:11px;opacity:.6;margin-bottom:2px">Running totals incl. standing</div><table style="font-variant-numeric:tabular-nums;border-collapse:collapse">${rows}</table></div>`;
 }
 
 function goBack(): void {
