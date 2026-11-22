@@ -22,6 +22,8 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Test-only key so CI (which has no .env) can encrypt cookies. Not used anywhere else. -->
+        <env name="APP_KEY" value="base64:5E6duJrNVSiHzTfPUUSxzYxaYLk3dwrJDICGt1wDCvU="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
